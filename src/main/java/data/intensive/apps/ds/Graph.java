@@ -70,9 +70,9 @@ public class Graph {
         return primsEdges;
     } // O(V*lg(V)) + O(V*lg(V)) + O(E*lg(V)) = O(E*lg(V))
 
-    public List<Edge> kurskalMST(){
+    public List<Edge> kruskalMST(){
 
-        List<Edge> kurskalEdges = new ArrayList<>();
+        List<Edge> kruskalEdges = new ArrayList<>();
         List<Integer> vertices = new ArrayList<>();
         vertices.addAll(adjList.keySet());
         DisjointSet set = new DisjointSet(vertices);
@@ -93,13 +93,47 @@ public class Graph {
             int v = e.getV();
             if (!set.connected(u, v)){
                 set.union(u, v);
-                kurskalEdges.add(e);
-                if (kurskalEdges.size() == vertices.size() - 1) {
+                kruskalEdges.add(e);
+                if (kruskalEdges.size() == vertices.size() - 1) {
                     break;
                 }
             }
         }
-        return kurskalEdges;
+        return kruskalEdges;
     }
 
+    public int[] dijkstra(int source){
+        int[] distances = new int[adjList.size()];
+        Arrays.fill(distances, Integer.MAX_VALUE);
+        distances[source] = 0;
+        PriorityQueue<Node<Integer, Integer>> pq = new PriorityQueue<>((a, b) -> a.value().compareTo(b.value()));
+        boolean[] visited = new boolean[adjList.size()];
+
+
+        pq.offer(new Node<>(source, 0));
+
+        while (!pq.isEmpty()){
+            Node<Integer, Integer> n = pq.poll();
+            int currentvertex = n.key();
+            int currentDistance = n.value();
+            if (visited[currentvertex]){
+                continue;
+            }
+            visited[currentvertex] = true;
+            for (Edge e : adjList.get(n.key())){
+                int possibleMinWeight = e.getWeight() + distances[currentvertex];
+                if (!visited[e.getV()] && distances[e.getV()] > possibleMinWeight){
+
+                    distances[e.getV()] = possibleMinWeight;
+                    pq.offer(new Node<>(e.getV(), possibleMinWeight));
+                }
+            }
+        }
+        return distances;
+    }
+
+
+    public int[] dagShortestPath(int source){
+        return null;
+    }
 }
