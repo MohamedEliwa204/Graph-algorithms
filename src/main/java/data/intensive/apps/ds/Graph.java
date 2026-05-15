@@ -78,6 +78,7 @@ public class Graph {
         DisjointSet set = new DisjointSet(vertices);
 
         List<Edge> edges = new ArrayList<>();
+        //O(E)
         for (List<Edge> adjacents : adjList.values()) {
             for (Edge e : adjacents) {
                 // Only add one copy of the undirected edge
@@ -86,11 +87,13 @@ public class Graph {
                 }
             }
         }
+        //O(E*lg(E))
         edges.sort(Comparator.comparing(Edge::getWeight));
-
+        //O(E)
         for (Edge e: edges){
             int u = e.getU();
             int v = e.getV();
+            // O(1) with path compression
             if (!set.connected(u, v)){
                 set.union(u, v);
                 kruskalEdges.add(e);
@@ -111,8 +114,9 @@ public class Graph {
 
 
         pq.offer(new Node<>(source, 0));
-
+        //O(V)
         while (!pq.isEmpty()){
+            //O(lg(V))
             Node<Integer, Integer> n = pq.poll();
             int currentvertex = n.key();
             int currentDistance = n.value();
@@ -120,11 +124,13 @@ public class Graph {
                 continue;
             }
             visited[currentvertex] = true;
+            // O(E) for all V not considered as nested complexity
             for (Edge e : adjList.get(n.key())){
                 int possibleMinWeight = e.getWeight() + distances[currentvertex];
                 if (!visited[e.getV()] && distances[e.getV()] > possibleMinWeight){
 
                     distances[e.getV()] = possibleMinWeight;
+                    //O(lg(V))
                     pq.offer(new Node<>(e.getV(), possibleMinWeight));
                 }
             }
