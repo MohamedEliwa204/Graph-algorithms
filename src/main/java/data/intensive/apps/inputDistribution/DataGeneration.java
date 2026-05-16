@@ -53,7 +53,7 @@ public class DataGeneration {
         int V = 5000;
         for (int u = 0; u < V; u++) {
             for (int destination = u + 1; destination < V; destination++) {
-                // give each edge a 25% chance of actually being created
+                // give each edge a 25% chance of actually being created .Random Graph Model guarantee that the graph is connected.
                 if (random.nextDouble() < 0.25) { // law of large numbers guarantee that roughly 25% of overall number of edges.
                     int weight = random.nextInt(1000) + 1;
                     graph.addEdge(u, destination, weight);
@@ -67,6 +67,7 @@ public class DataGeneration {
         Random random = new Random(42);
         Graph graph = new Graph();
         int V = 5000;
+        // undirected graph when reach last vertex it is already connected to  all other vertices.
         for (int u = 0; u < V; u++) {
             for (int destination = u + 1; destination < V; destination++) {
                 int weight = random.nextInt(1000) + 1;
