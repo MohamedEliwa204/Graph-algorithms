@@ -140,6 +140,42 @@ public class Graph {
 
 
     public int[] dagShortestPath(int source){
-        return null;
+        int[] visited = new int[adjList.size()];
+
+        Stack<Integer> st = new Stack<>();
+        topSort(source, st, visited);
+        int[] distances = new int[adjList.size()];
+        Arrays.fill(distances, Integer.MAX_VALUE);
+        distances[source] = 0;
+        while (!st.isEmpty()){
+            int node = st.pop();
+            if (distances[node] == Integer.MAX_VALUE){ // unreachable node
+                continue;
+            }
+
+            for (Edge e : adjList.get(node)){
+                int destination = e.getV();
+                int possibleMinDist = distances[node] + e.getWeight();
+                if (distances[destination] > possibleMinDist){
+                    distances[destination] = possibleMinDist;
+                }
+            }
+        }
+        return distances;
+    }
+
+
+    private void topSort(int node, Stack<Integer> st, int[] visited){
+        visited[node] = 1;
+        for (Edge e : adjList.get(node)){
+            if (visited[e.getV()] == 1){
+                throw new IllegalStateException("Graph is not a DAG: Cycle detected!");
+            }
+            if (visited[e.getV()] == 0) {
+                topSort(e.getV(), st, visited);
+            }
+        }
+        visited[node] = 2;
+        st.push(node);
     }
 }
