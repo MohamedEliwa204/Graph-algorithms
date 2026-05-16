@@ -1,34 +1,45 @@
 package data.intensive.apps.inputDistribution;
 
-import data.intensive.apps.ds.Edge;
 import data.intensive.apps.ds.Graph;
 
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class DataGeneration {
 
     public static Graph sparseGraph(){
         Random random = new Random(42);
         Graph graph = new Graph();
-        Set<Integer> connected = new HashSet<>();
+        int V = 5000;
+        // prevent parallel edges.
+        Set<String> existingEdges = new HashSet<>();
+        // generate connected graph first
+        for (int i = 1; i < V; i++) {
+            int parent = random.nextInt(i);
+            int weight = random.nextInt(1000) + 1;
+            graph.addEdge(i, parent, weight);
+            existingEdges.add(parent + "-" + i);
+        }
+        int remainingEdges = 25000 - (V - 1);
 
-        for (int i = 0; i < 5000; i++) {
-            int vertex = i;
-            int numberOfEdges = random.nextInt(10) + 1;
-            boolean[] visited = new boolean[5000];
-            visited[vertex] = true;
-            for (int j = 0; j < numberOfEdges; j++) {
-                int distenation;
-                do {
-                    distenation = random.nextInt(5000);
-                } while (visited[distenation] || (connected.contains(distenation) && connected.size() < 4999)); // to prevent self loops and parallel edges
-                visited[distenation] = true;
-                connected.add(distenation);
+        for (int i = 0; i < remainingEdges; i++) {
+            int u = random.nextInt(V);
+            int destination = random.nextInt(V);
+
+            if (u == destination){ // prevent self loops
+                i--;
+                continue;
+            }
+            int min = Math.min(u, destination);
+            int max = Math.max(u, destination);
+            String edgeKey = min + "-" + max;
+            if (!existingEdges.contains(edgeKey)){
+                existingEdges.add(edgeKey);
                 int weight = random.nextInt(1000) + 1;
-                graph.addEdge(vertex, distenation, weight);
+                graph.addEdge(u, destination, weight);
+            }else{
+                i--;
 
             }
         }
@@ -38,21 +49,15 @@ public class DataGeneration {
     public static Graph denseGraph(){
         Random random = new Random(42);
         Graph graph = new Graph();
-        Set<Integer> connected = new HashSet<>();
-        for (int i = 0; i < 5000; i++) {
-            int vertex = i;
-            int numberOfEdges = 1250;
-            boolean[] visited = new boolean[5000];
-            visited[vertex] = true;
-            for (int j = 0; j < numberOfEdges; j++) {
-                int distenation;
-                do {
-                    distenation = random.nextInt(5000);
-                } while (visited[distenation] || (connected.contains(distenation) && connected.size() < 4999)); // to prevent self loops and parallel edges
-                visited[distenation] = true;
-                connected.add(distenation);
-                int weight = random.nextInt(1000) + 1;
-                graph.addEdge(vertex, distenation, weight);
+        Set<String> existingEdges = new HashSet<>();
+        int V = 5000;
+        for (int u = 0; u < V; u++) {
+            for (int destination = u + 1; destination < V; destination++) {
+                // give each edge a 25% chance of actually being created
+                if (random.nextDouble() < 0.25) {
+                    int weight = random.nextInt(1000) + 1;
+                    graph.addEdge(u, destination, weight);
+                }
             }
         }
         return graph;
@@ -61,50 +66,41 @@ public class DataGeneration {
     public static Graph completedGraph(){
         Random random = new Random(42);
         Graph graph = new Graph();
-        Set<Integer> connected = new HashSet<>();
-        for (int i = 0; i < 5000; i++) {
-            int vertex = i;
-            int numberOfEdges = 4999;
-            boolean[] visited = new boolean[4999];
-            visited[vertex] = true;
-            for (int j = 0; j < numberOfEdges; j++) {
-                int distenation;
-                do {
-                    distenation = random.nextInt(5000);
-                } while (visited[distenation] || (connected.contains(distenation) && connected.size() < 4999)); // to prevent self loops and parallel edges
-                visited[distenation] = true;
-                connected.add(distenation);
+        int V = 5000;
+        for (int u = 0; u < V; u++) {
+            for (int destination = u + 1; destination < V; destination++) {
                 int weight = random.nextInt(1000) + 1;
-                graph.addEdge(vertex, distenation, weight);
+                graph.addEdge(u, destination, weight);
             }
         }
         return graph;
+
     }
 
     public static Graph directedAcyclicGraph(){
         Random random = new Random(42);
         Graph graph = new Graph();
-        Set<Integer> connected = new HashSet<>();
-        for (int i = 0; i < 4999; i++) { // last vertex has no edges out of it in DAG
+        Set<String> existingEdges = new HashSet<>();
+        int V = 5000;
+        for (int i = 1; i < 5000; i++) {
+            int parent = random.nextInt(i);
+            int weight = random.nextInt(1000) + 1;
+            graph.addDirectedEdge(parent, i, weight);
+            existingEdges.add(parent + "->" + i);
+        }
 
-            int vertex = i;
-            int numberOfEdges;
-            if (i < 4900){
-                numberOfEdges = random.nextInt(10) + 1;
-            }else{
-                numberOfEdges = random.nextInt(5000 - i) + 1;
-            }
-            boolean[] visited = new boolean[5000];
-            visited[vertex] = true;
-            for (int j = 0; j < numberOfEdges; j++) {
-                int distenation;
-                do {
-                    distenation = random.nextInt(5000 - i) + i; // to prevent cycles, make edges forward.
-                } while (visited[distenation] || (connected.contains(distenation) && connected.size() < 4999)); // to prevent self loops and parallel edges
-                visited[distenation] = true;
-                connected.add(distenation);
+        int remainingEdges = 25000 - (V - 1);
+        for (int i = 0; i < remainingEdges; i++) {
+            int u = random.nextInt(V - 1); // last edge in DAG has no out edges
+            int destination = random.nextInt(V - u - 1) + u + 1; // generate edges forward to prevent cycles
+
+            String edgeKey = u + "->" + destination;
+            if (!existingEdges.contains(edgeKey)){
+                existingEdges.add(edgeKey);
                 int weight = random.nextInt(1000) + 1;
-                graph.addDirectedEdge(vertex, distenation, weight);
+                graph.addDirectedEdge(u, destination, weight);
+            }else{
+                i--;
             }
         }
         return graph;
