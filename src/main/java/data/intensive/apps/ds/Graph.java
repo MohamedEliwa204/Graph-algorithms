@@ -26,56 +26,47 @@ public class Graph {
         List<Edge> primsEdges = new ArrayList<>();
         // heap
         PriorityQueue<Node<Integer, Integer>> pq = new PriorityQueue<>((a, b) -> a.value().compareTo(b.value()));
-        Set<Integer> keysInPQ  = new HashSet<>();
-        Map<Integer, Integer> minWeights = new HashMap<>();
-        Map<Integer, Edge> parentEdge = new HashMap<>();
+        boolean[] inMST = new boolean[adjList.size()];
+        int[] minWeights = new int[adjList.size()];
+        Arrays.fill(minWeights, Integer.MAX_VALUE);
+        Edge[] parentEdge = new Edge[adjList.size()];
 
-        // O(V)
-        for (Integer k : adjList.keySet()) {
-            //O(lg(V))
-            pq.offer(new Node<>(k, Integer.MAX_VALUE));
-            keysInPQ.add(k);
-            minWeights.put(k, Integer.MAX_VALUE);
-        }
-
-        Node<Integer,  Integer> firstNode = pq.poll();
-        if (firstNode == null){
-            throw new RuntimeException("Graph is empty!");
-        }
-
-        Node<Integer, Integer> node = new Node<>(firstNode.key(), 0);
-        pq.offer(node);
+        int startNode = 0;
+        pq.offer(new Node<>(startNode, 0));
+        minWeights[startNode] = 0;
         //O(V)
         while (!pq.isEmpty()){
             //O(lg(V))
             Node<Integer, Integer> n = pq.poll();
-            if (!keysInPQ.contains(n.key())){
+            int currentVertex = n.key();
+            if (inMST[currentVertex]) {
                 continue;
             }
-            keysInPQ.remove(n.key());
+            inMST[currentVertex] = true;
+            if (parentEdge[currentVertex] != null) {
+                primsEdges.add(parentEdge[currentVertex]);
+            }
             List<Edge> adj = adjList.get(n.key());
             // O(E) for all V not considered as nested complexity
             for (Edge e: adj){
-                if (keysInPQ.contains(e.getV()) && e.getWeight() < minWeights.get(e.getV())){
+                if (!inMST[e.getV()] && e.getWeight() < minWeights[e.getV()]){
                     //O(1)
-                    minWeights.put(e.getV(), e.getWeight());
-                    parentEdge.put(e.getV(), e);
+                    minWeights[e.getV()] =  e.getWeight();
+                    parentEdge[e.getV()] = e;
                     //O(lg(V))
                     pq.offer(new Node<>(e.getV(), e.getWeight()));
                 }
             }
         }
-        //O(E)
-        parentEdge.forEach((nodeId, parent) -> primsEdges.add(parent));
+
         return primsEdges;
     } // O(V*lg(V)) + O(V*lg(V)) + O(E*lg(V)) = O(E*lg(V))
 
     public List<Edge> kruskalMST(){
 
         List<Edge> kruskalEdges = new ArrayList<>();
-        List<Integer> vertices = new ArrayList<>();
-        vertices.addAll(adjList.keySet());
-        DisjointSet set = new DisjointSet(vertices);
+        int V = adjList.size();;
+        DisjointSet set = new DisjointSet(V);
 
         List<Edge> edges = new ArrayList<>();
         //O(E)
@@ -97,7 +88,7 @@ public class Graph {
             if (!set.connected(u, v)){
                 set.union(u, v);
                 kruskalEdges.add(e);
-                if (kruskalEdges.size() == vertices.size() - 1) {
+                if (kruskalEdges.size() == V - 1) {
                     break;
                 }
             }
