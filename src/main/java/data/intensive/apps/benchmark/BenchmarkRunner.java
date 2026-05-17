@@ -23,6 +23,7 @@ public class BenchmarkRunner {
 
         System.out.println("---Running: SSSP");
         runSSSP(sparseGraph, denseGraph, completeGraph, directedAcyclicGraph);
+        // don't put try catch because this will the benchmark loop would instantly finish that iteration and long[] will hold 0ms which wrong answer.
 
     }
     public static void runMST(Graph sparseGraph, Graph denseGraph, Graph completedGraph){
